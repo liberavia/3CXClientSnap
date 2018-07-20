@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=3CXClient
+Comment=3CX Desktop Client
+Exec=3cxclient
+Icon=${SNAP}/meta/gui/3cxclient.png
+Categories=Network;Office;
+Terminal=false
+StartupNotify=true
+StartupWMClass=3CXWin8Phone.exe
+Keywords=game
