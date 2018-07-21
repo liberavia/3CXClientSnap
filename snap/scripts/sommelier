@@ -3,16 +3,27 @@
 TITLE="3CX Desktop Client"
 NOTICE="The ${TITLE} snap is an unofficial built
 with development releases of upstream WINE and may not function as
-expected.\n\nIf you encounter issues please report them on the
-${TITLE} snap issue tracker:
-\n\nhttps://github.com/liberavia/tmnationsforever"
+expected.\nIf you encounter issues please report them on the
+${TITLE} issue tracker on:
+\nhttps://github.com/liberavia/3CXClientSnap"
 
 function install_app() {
   # Install additional requirements via winetricks here
   if [ -n "${TRICKS}" ]; then
-    for TRICK in ${TRICKS}; do
-      env WINEARCH="${WINEARCH}" WINEPREFIX="${WINEPREFIX}" "${WINETRICKS}" --gui --unattended ${TRICK}
-    done
+    (
+        AMOUNTTRICKS=$(echo "${TRICKS}" | wc -w)
+        CURRENTTRICKCOUNT=0
+        for TRICK in ${TRICKS}; do
+          CURRENTTRICKCOUNT=$(expr $CURRENTTRICKCOUNT + 1)
+          NUMERATOR=$((100 * $CURRENTTRICKCOUNT))
+          PERCENT=$((NUMERATOR / AMOUNTTRICKS))
+          PERCENT=$(expr $PERCENT - 1)
+          echo ${PERCENT}
+          echo "# ${PERCENT}% processed. Currently installing ${TRICK} in progress..."
+          env WINEARCH="${WINEARCH}" WINEPREFIX="${WINEPREFIX}" "${WINETRICKS}" --gui --unattended ${TRICK}
+        done
+        echo 100
+    ) | yad --progress --title="Installing extra components" --width=400 --center --no-buttons --auto-close --on-top
   fi
 
   # Modify or remove this as required by your application.
@@ -89,10 +100,6 @@ else
   ARCH="x86_64-linux-gnu"
 fi
 
-if [ -n "${DLLOVERRIDES}" ]; then
-  export WINEDLLOVERRIDES="${DLLOVERRIDES}"
-fi
-
 export WINEVERPATH=$SNAP
 export WINESERVER=$SNAP/bin/wineserver
 export WINELOADER=$SNAP/bin/wine
@@ -102,7 +109,7 @@ export winepath=$SNAP/bin/winepath
 export WINEDLLPATH=$SNAP/lib/wine/fakedlls
 export WINEPREFIX="$SNAP_USER_COMMON/.wine"
 
-export WINEDEBUG=-all
+#export WINEDEBUG=-all
 export LD_LIBRARY_PATH="$SNAP/lib:$SNAP/lib/$ARCH:$SNAP/usr/lib:$SNAP/usr/lib/$ARCH:$LD_LIBRARY_PATH"
 
 # XKB config
@@ -203,6 +210,10 @@ fi
 
 # Initialise wine
 if [ ! -f "${WINEPREFIX}/drive_c/windows/win.ini" ]; then
+  if [ -n "${DLLOVERRIDES}" ]; then
+    export WINEDLLOVERRIDES="${DLLOVERRIDES}"
+  fi
+
   # Install notice
   yad --timeout=15 --timeout-indicator=bottom --text="${NOTICE}" --no-escape --width=460 --center --no-buttons --splash --on-top &
   # Create the WINE environment
